@@ -97,7 +97,7 @@ st.write("\n")
 
 st.header("Monte-Carlo Simulation")
 
-image = Image.open("C:\BIT_2021_2022\MOD5\Project\Part2\src\images\monte_carlo.png")
+image = Image.open("images\monte_carlo.png")
 st.image(image)
 st.write("Output: 0.0")
 
