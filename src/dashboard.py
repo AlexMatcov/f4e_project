@@ -97,8 +97,8 @@ st.write("\n")
 
 st.header("Monte-Carlo Simulation")
 
-image = Image.open("monte_carlo.png")
-st.image(image)
+st.image("https://i0.wp.com/www.learnpythonwithrune.org/wp-content/uploads/2021/03/Skaermbillede-2021-03-18-kl.-11.01"
+         ".38.png?w=1450&ssl=1")
 st.write("Output: 0.29764")
 
 st.subheader("What's Monte-Carlo Simulation?")
