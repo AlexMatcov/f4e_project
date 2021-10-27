@@ -15,7 +15,7 @@ v = st.sidebar.number_input("Volatility", min_value=0.0, max_value=1.0, value=0.
 T = st.sidebar.slider("Time horizon (years)", min_value=1)
 r = st.sidebar.number_input("Risk-free rate ", min_value=0.0, max_value=1.0, value=0.05)
 n = st.sidebar.slider("Number of time steps", min_value=1, value=10)
-ep = st.sidebar.selectbox("Exercise policy", ("American", "European"))
+ep = st.sidebar.selectbox("Exercise policy", ("European", "American"))
 cp = st.sidebar.selectbox("Option", ("Call", "Put"))
 
 st.subheader("Introduction")
@@ -97,9 +97,9 @@ st.write("\n")
 
 st.header("Monte-Carlo Simulation")
 
-image = Image.open("images\monte_carlo.png")
+image = Image.open("src\images\monte_carlo.png")
 st.image(image)
-st.write("Output: 0.0")
+st.write("Output: 0.29764")
 
 st.subheader("What's Monte-Carlo Simulation?")
 st.markdown(
