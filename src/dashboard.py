@@ -97,7 +97,7 @@ st.write("\n")
 
 st.header("Monte-Carlo Simulation")
 
-image = Image.open("src\images\monte_carlo.png")
+image = Image.open("monte_carlo.png")
 st.image(image)
 st.write("Output: 0.29764")
 
