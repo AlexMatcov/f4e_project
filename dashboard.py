@@ -2,9 +2,11 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from math import exp, sqrt, log
+from scipy.stats import norm
 from matplotlib.backends.backend_agg import RendererAgg
-_lock = RendererAgg.lock
 
+_lock = RendererAgg.lock
 
 st.title("OPTION PRICE DASHBOARD")
 st.write("by [Group 2](https://canvas.utwente.nl/groups/92289/users)")
@@ -19,20 +21,26 @@ v /= 100
 T = st.sidebar.slider("Time horizon (years)", min_value=1)
 r = st.sidebar.number_input("Risk-free rate (%)", min_value=0.0, max_value=100.0, value=5.0)
 r /= 100
-n = st.sidebar.number_input("Number of time steps", min_value=1, value=10)
-m = st.sidebar.number_input("Number of simulation steps", min_value=1, value=100)
-ep = st.sidebar.selectbox("Exercise policy", ("European", "American"))
+n = st.sidebar.number_input("Number of time steps (nodes)", min_value=1, value=10)
+m = st.sidebar.number_input("Number of simulation steps (experiments)", min_value=1, value=100)
 cp = st.sidebar.selectbox("Option", ("Call", "Put"))
 
-st.subheader("Introduction")
+st.header("Introduction")
 st.markdown("Option is a right buy or sell the stock at a certain price with maturity. Since buying a beneficial "
             "option will be a difficult work without any information about the option prices, the revenue or the loss "
             "should be shown for the investors to make the profit from it. To make the buyers trade about options "
             "easier, a product that does the complicated calculations could be a useful tool. The product for this "
-            "project is a dashboard that calculates the option prices including exotic options. Monte-Carlo "
+            "project is a dashboard that calculates the option prices including exotic options. Monte Carlo "
             "simulation is used as a formula for calculation. ")
 
-st.header("Option Prices")
+st.header("Binomial Option Prices")
+
+st.subheader("Introduction to the model")
+st.markdown("One of the most basic methods of calculating options values is the Binomial Method. This method is "
+            "reducing the possible changes in the next period’s stock price to two, an “up” move and a “down” move. "
+            "Two changes in the stock price in a long period of time is unrealistic. On the other hand, we can take "
+            "shorter intervals, with each interval showing two possible changes. Then, at the end of the longer "
+            "period, the stock prices will be more realistic.")
 
 # general formulas
 time_step = T / n
@@ -42,16 +50,15 @@ p = (np.exp(r * time_step) - d) / (u - d)
 q = 1 - p
 
 
-def binomial_lattice(S, K, r, n, call_put, ep):
+def binomial_lattice(S, K, r, n, call_put):
     stock_price = np.zeros((n + 1, n + 1))
 
     stock_price[0, 0] = S
 
-    if ep == "European":
-        for i in range(1, n + 1):
-            stock_price[i, 0] = stock_price[i - 1, 0] * u
-            for j in range(1, i + 1):
-                stock_price[i, j] = stock_price[i - 1, j - 1] * d
+    for i in range(1, n + 1):
+        stock_price[i, 0] = stock_price[i - 1, 0] * u
+        for j in range(1, i + 1):
+            stock_price[i, j] = stock_price[i - 1, j - 1] * d
 
     df_stock_price = pd.DataFrame(data=stock_price)
     df_stock_price = df_stock_price.T
@@ -73,12 +80,15 @@ def binomial_lattice(S, K, r, n, call_put, ep):
     return option_value[0, 0], df_stock_price
 
 
-binomial_price, df = binomial_lattice(S, K, r, n, cp, ep)
+binomial_price, df = binomial_lattice(S, K, r, n, cp)
 
+st.subheader("Binomial Trees")
 st.dataframe(df)
-st.write(ep, cp, 'price: %.2f' % binomial_price)
+st.subheader("Binomial Price")
+st.write(cp, 'price: ', round(binomial_price, 4))
 
 st.subheader("Formulae Used")
+st.latex(r"u = e^{\sigma \sqrt{t}}")
 st.latex(r"d = \frac{1}{u}")
 st.latex(r"S_{t+1} = S_t \cdot u")
 st.latex(r"S_{t+1} = S_t \cdot d")
@@ -89,7 +99,41 @@ st.latex(r"C_t = e^{-r} (p \cdot Cu_{t+1} + (1 - p) \cdot Cd_{t+1})")
 st.latex(r"P_t = e^{-r} (p \cdot Pu_{t+1} + (1 - p) \cdot Pd_{t+1})")
 st.write("\n")
 
-st.header("Monte-Carlo Simulation")
+st.header("Black-Scholes Option Price")
+st.subheader("Some information on the method")
+st.write("")
+st.subheader("Black-Scholes Price")
+
+
+def black_scholes(S, K, T, r, v):
+    d1 = (log(S / K) + (r + 0.5 * v ** 2) * T) / (v * sqrt(T))
+    d2 = d1 - v * sqrt(T)
+    if cp == "Call":
+        return S * norm.cdf(d1) - K * exp(-r * T) * norm.cdf(d2)
+    if cp == "Put":
+        return K * exp(-r * T) * norm.cdf(-d2) - S * norm.cdf(-d1)
+
+
+st.write(cp, "price is: ", round(black_scholes(S, K, T, r, v), 4))
+
+st.subheader("Formulae Used")
+st.latex(r"C = N(d_1)S_t - N(d_2)Ke^{-rt}")
+st.latex(r"d_1 = \frac{ln \frac{S_t}{K} + (r + \frac{\sigma^2}{2} t)}{\sigma \sqrt{t}}")
+st.latex(r"d_2 = d_1 - \sigma \sqrt{t}")
+
+st.header("Monte Carlo Simulation")
+
+st.subheader("What is Monte Carlo Simulation for Option Pricing?")
+st.markdown(
+    "The calculation of option prices is an incredibly hard task, and you can never know the outcome for sure. One of "
+    "the most relevant parts of the calculations of option prices is the variance. Calculating the variance as "
+    "precise as possible is therefore of great importance to have a relevant outcome. This is where a Monte Carlo "
+    "simulation comes in handy. A Monte Carlo simulation can execute calculations multiple times, with different "
+    "initial variables. By doing this, the variance is probably more accurate than using another method, because the "
+    "simulation processed many different input variables. By repeating the calculation multiple times, "
+    "it will calculate multiple slightly varying option prices. In the end the tool takes the average of these "
+    "calculated values. The more simulation steps the tool uses, the closer the simulation will get the option price "
+    "to the actual value")
 
 
 def monte_carlo():
@@ -131,22 +175,47 @@ def monte_carlo():
 
 options_array = monte_carlo()[1]
 no_zeros_option_array = np.delete(options_array, np.where(options_array == 0))
+monte_carlo_price = round(monte_carlo()[0], 4)
+
+st.subheader("Monte Carlo Simulation Option Price")
+st.write(cp, 'price: ', monte_carlo_price)
+
+st.subheader("Visualization of the result")
 
 with _lock:
     fig, ax = plt.subplots()
     ax.hist(no_zeros_option_array, bins=15)
     st.pyplot(fig)
-    st.write(cp, 'price: %.2f' % monte_carlo()[0])
-
-st.subheader("What's Monte-Carlo Simulation?")
-st.markdown(
-    "The calculation of option prices is an incredibly hard task, and you can never know the outcome for sure. One of "
-    "the most relevant parts of the calculations of option prices is the variance. Calculating the variance as "
-    "precise as possible is therefore of great importance to have a relevant outcome. This is where a Monte-Carlo "
-    "simulation comes in handy. A Monte-Carlo simulation can execute calculations multiple times, with different "
-    "initial variables. By doing this, the variance might be more accurate than using another method, because the "
-    "simulation processed many different input variables. ")
 
 st.subheader("Formulae Used")
-st.latex(r"\frac{f(x)}{g(x)} \approx k")
-st.latex("G(x) = \int_0^x g(x)dx")
+st.latex(r"S_{t+1} = S_t \cdot e^{d + a \cdot r}")
+st.latex(r"d = (r - \frac{\sigma^2}{2}) dt")
+st.latex(r"a = \sigma \cdot \sqrt{dt}")
+
+st.header("Comparision of the methods")
+
+col1, col2, col3 = st.columns(3)
+with col1:
+    st.markdown("#### Binomial Option Price")
+    st.write(round(binomial_price, 4))
+with col2:
+    st.markdown("#### Monte Carlo Simulation Option Price")
+    st.write(monte_carlo_price)
+with col3:
+    st.markdown("#### Black-Scholes Option Price")
+    st.write(round(black_scholes(S, K, T, r, v), 4))
+
+# st.subheader("Visualization of the comparison")
+
+
+st.subheader("Conclusion after comparing")
+st.markdown("The discrepancy in the option price from the Black-Scholes model compared to the binomial method is "
+            "strictly based on the number of the time steps (nodes). Comparing the option prices achieved by the "
+            "Monte Carlo simulation to the ones outputted by the Black-Scholes or the binomial model one could either "
+            "notice a considerable difference between those or an agreement on the values. This is due to the "
+            "quantity of the sample size chosen. Changing the number of simulations to a higher value would approach "
+            "the price of the option's actual value. As the number of the run experiments increases towards infinity "
+            "the price approaches the binomial and the Black-Scholes values, due to [Central Limit Theorem]("
+            "https://en.wikipedia.org/wiki/Central_limit_theorem). The conclusion is that the accuracy of the "
+            "binomial model depends on the number of defined nodes compared to the Monte Carlo simulation which "
+            "requires a significant increment in the number of conducted simulations. ")
