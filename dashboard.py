@@ -2,6 +2,7 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib
 
 st.title("OPTION PRICE DASHBOARD")
 st.write("by [Group 2](https://canvas.utwente.nl/groups/92289/users)")
