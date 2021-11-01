@@ -2,7 +2,9 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import matplotlib
+from matplotlib.backends.backend_agg import RendererAgg
+_lock = RendererAgg.lock
+
 
 st.title("OPTION PRICE DASHBOARD")
 st.write("by [Group 2](https://canvas.utwente.nl/groups/92289/users)")
@@ -130,10 +132,11 @@ def monte_carlo():
 options_array = monte_carlo()[1]
 no_zeros_option_array = np.delete(options_array, np.where(options_array == 0))
 
-fig, ax = plt.subplots()
-ax.hist(no_zeros_option_array, bins=15)
-st.pyplot(fig)
-st.write(cp, 'price: %.2f' % monte_carlo()[0])
+with _lock:
+    fig, ax = plt.subplots()
+    ax.hist(no_zeros_option_array, bins=15)
+    st.pyplot(fig)
+    st.write(cp, 'price: %.2f' % monte_carlo()[0])
 
 st.subheader("What's Monte-Carlo Simulation?")
 st.markdown(
