@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from math import exp, sqrt, log
 from scipy.stats import norm
 from matplotlib.backends.backend_agg import RendererAgg
+
 _lock = RendererAgg.lock
 
 st.title("OPTION PRICE DASHBOARD")
@@ -101,7 +102,12 @@ st.write("\n")
 
 st.header("Black-Scholes Option Price")
 st.subheader("Some information on the method")
-st.write("")
+st.write("The Black – Scholes model is an option pricing model  that calculates an estimate of the price of an option "
+         "according to five inputs: the volatility, stock price, exercise price, risk free interest rate, "
+         "and the time until the expiration date. The model assumes the stock price will follow a geometric Brownian "
+         "motion, and that volatility is constant. The Black – Scholes model is only able to calculate European "
+         "options, and does not account for dividends paid out by the stock. ")
+
 st.subheader("Black-Scholes Price")
 
 
@@ -167,6 +173,18 @@ def monte_carlo():
     call = payoff_call * np.exp(-r * T)
     put = payoff_put * np.exp(-r * T)
 
+    # bcall_array = np.max(stock_price, axis=1)
+    # for i in range(len(bcall_array)):
+    #     if bcall_array[i] >= K + b:
+    #         bcall_array[i] = 0
+    #     elif bcall_array[i] < 0:
+    #         bcall_array[i] = 0
+    #     else:
+    #         bcall_array[i] = bcall_array[i]
+    #
+    # # payoff_bcall = np.mean(bcall_array)
+    # bcall = np.mean(bcall_array * call_array) * np.exp(-r * T)
+    #
     if cp == "Call":
         return call, call_array
     else:
@@ -205,7 +223,6 @@ with col3:
     st.markdown("#### Black-Scholes Option Price")
     st.write(round(black_scholes(S, K, T, r, v), 4))
 
-
 st.subheader("Conclusion after comparing")
 st.markdown("The discrepancy in the option price from the Black-Scholes model compared to the binomial method is "
             "strictly based on the number of the time steps (nodes). Comparing the option prices achieved by the "
@@ -216,11 +233,12 @@ st.markdown("The discrepancy in the option price from the Black-Scholes model co
             "the price approaches the binomial and the Black-Scholes values, due to [Central Limit Theorem]("
             "https://en.wikipedia.org/wiki/Central_limit_theorem). The conclusion is that the accuracy of the "
             "binomial model depends on the number of defined nodes compared to the Monte Carlo simulation which "
-            "requires a significant increment in the number of conducted simulations. ")
+            "requires a significant increment in the number of conducted simulations and for the maximum precision a "
+            "high number of nodes as well.")
 
-# rets = np.random.randn(m, T*252)*v/np.sqrt(time_step)
+# rets = np.random.randn(m, T*252)*v/np.sqrt(252)
 # st.write(rets.shape)
 # traces = np.cumprod(1 + rets, 1)*S
 # barrier_call = np.mean(traces[:, -1] - K * ((traces[:, -1] - K) > 0) * (np.max(traces, axis=1) < (K + b)))
-# call = np.mean((traces[:, -1] - K) * ((traces[:, -1] - K) > 0))
-# st.write(call)
+# bcall = np.mean((traces[:, -1] - K) * ((traces[:, -1] - K) > 0))
+# st.write(monte_carlo()[2])
