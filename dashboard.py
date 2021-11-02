@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 from math import exp, sqrt, log
 from scipy.stats import norm
 from matplotlib.backends.backend_agg import RendererAgg
-
 _lock = RendererAgg.lock
 
 st.title("OPTION PRICE DASHBOARD")
@@ -14,15 +13,16 @@ st.write("by [Group 2](https://canvas.utwente.nl/groups/92289/users)")
 st.sidebar.title("Parameters")
 
 # sidebar inputs
-S = st.sidebar.number_input("Stock price", min_value=0.0, value=100.0)
-K = st.sidebar.number_input("Strike price", min_value=0.0, value=105.0)
-v = st.sidebar.number_input("Volatility (%)", min_value=0.0, max_value=100.0, value=10.0)
+S = st.sidebar.number_input("Stock price", min_value=0.1, value=100.0)
+K = st.sidebar.number_input("Strike price", min_value=0.1, value=105.0)
+v = st.sidebar.number_input("Volatility (%)", min_value=0.1, max_value=100.0, value=10.0)
 v /= 100
 T = st.sidebar.slider("Time horizon (years)", min_value=1)
-r = st.sidebar.number_input("Risk-free rate (%)", min_value=0.0, max_value=100.0, value=5.0)
+r = st.sidebar.number_input("Risk-free rate (%)", min_value=0.1, max_value=100.0, value=5.0)
 r /= 100
 n = st.sidebar.number_input("Number of time steps (nodes)", min_value=1, value=10)
 m = st.sidebar.number_input("Number of simulation steps (experiments)", min_value=1, value=100)
+# b = st.sidebar.number_input("Distance of the barrier", min_value=0.1, value=10.0)
 cp = st.sidebar.selectbox("Option", ("Call", "Put"))
 
 st.header("Introduction")
@@ -205,8 +205,6 @@ with col3:
     st.markdown("#### Black-Scholes Option Price")
     st.write(round(black_scholes(S, K, T, r, v), 4))
 
-# st.subheader("Visualization of the comparison")
-
 
 st.subheader("Conclusion after comparing")
 st.markdown("The discrepancy in the option price from the Black-Scholes model compared to the binomial method is "
@@ -219,3 +217,10 @@ st.markdown("The discrepancy in the option price from the Black-Scholes model co
             "https://en.wikipedia.org/wiki/Central_limit_theorem). The conclusion is that the accuracy of the "
             "binomial model depends on the number of defined nodes compared to the Monte Carlo simulation which "
             "requires a significant increment in the number of conducted simulations. ")
+
+# rets = np.random.randn(m, T*252)*v/np.sqrt(time_step)
+# st.write(rets.shape)
+# traces = np.cumprod(1 + rets, 1)*S
+# barrier_call = np.mean(traces[:, -1] - K * ((traces[:, -1] - K) > 0) * (np.max(traces, axis=1) < (K + b)))
+# call = np.mean((traces[:, -1] - K) * ((traces[:, -1] - K) > 0))
+# st.write(call)
